@@ -13,7 +13,7 @@ ChatU App Builder 构建应用时使用的 Agent Skills（Claude Code SKILL 格�
 | `chatu-kv` | 平台 KV 键值存储（app-sdk 的 kv） |
 | `chatu-db` | 平台托管文档集合（db） |
 | `chatu-storage` | 平台对象存储（storage） |
-| `chatu-auth` | 应用自己的登录用户体系（auth） |
+| `chatu-auth` | 应用的登录用户体系（auth）：应用自建用户 / 渠道账号两种模式 |
 | `chatu-ai` | 平台 LLM 中继（ai），禁止直连第三方模型 |
 | `chatu-validation` | 输入校验规范（zod） |
 
@@ -24,6 +24,8 @@ ChatU App Builder 构建应用时使用的 Agent Skills（Claude Code SKILL 格�
 | `chatu-quickstart` | 创建应用标准流程（快速启动为主）；附 `recipes/` 预置代码：list-detail（增删改查）、form-collect（表单收集）、landing（落地页），复制即可编译预览 |
 | `chatu-ui` | 界面与样式规范（shadcn@base-ui + Tailwind v4，三态、响应式、中文排版） |
 | `chatu-debug` | 排错指南（排查路径、常见错误→修法对照、回退策略） |
+| `chatu-verify` | 运行时自检（请求页面确认没有白屏/500，交付前必走） |
+| `chatu-deploy` | 发布与部署（EdgeOne / 函数 / Git / 导出，部署前自检与失败对照） |
 
 ## 约定
 
