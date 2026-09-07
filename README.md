@@ -10,11 +10,11 @@ ChatU App Builder 构建应用时使用的 Agent Skills（Claude Code SKILL 格�
 
 | SKILL | 说明 |
 | --- | --- |
-| `chatu-kv` | 平台 KV 键值存储（app-sdk 的 kv） |
+| `chatu-kv` | 平台 KV 键值存储与接口限流（app-sdk 的 kv、ratelimit） |
 | `chatu-db` | 平台托管文档集合（db） |
 | `chatu-storage` | 平台对象存储（storage） |
 | `chatu-auth` | 应用的登录用户体系（auth）：应用自建用户 / 渠道账号两种模式 |
-| `chatu-ai` | 平台 LLM 中继（ai），禁止直连第三方模型 |
+| `chatu-ai` | 平台 LLM 中继（ai）：对话/结构化输出/图片理解/工具调用/向量检索/OCR，禁止直连第三方模型；附 `references/rag.md`（知识库检索完整流程） |
 | `chatu-validation` | 输入校验规范（zod） |
 
 ### 流程类
