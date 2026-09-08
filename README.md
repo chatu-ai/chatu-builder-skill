@@ -31,6 +31,17 @@ ChatU App Builder 构建应用时使用的 Agent Skills（Claude Code SKILL 格�
 
 1. **不得包含敏感信息**：密钥、内部域名、真实账号、员工信息一律不进仓库；示例里的 key 用占位符。
 2. **SDK 更新必须联动更新 SKILL**：`@chatu-ai/app-sdk` 的 API 有任何变化（新增/改名/参数变更/行为变化），对应能力 SKILL 必须在**同一批改动**里更新并提交到本仓库——SKILL 是 agent 的 API 文档，落后一个版本就会让 agent 写出跑不通的代码。反向同理：SKILL 里描述的 API 必须真实存在于当前 SDK 版本。
-3. **改动及时提交**：SKILL 内容有更新（含在 chatu-builder-sdk / chatuse 联动修改时）必须同步提交推送到本仓库，保持单一事实源。过渡期内（chatuse 尚未直接从本仓库拉取前）还需同步拷贝到 `chatu-builder-sdk/packages/app-sdk/skills/`。
+3. **改动及时提交**：SKILL 内容有更新（含在 chatu-builder-sdk / chatuse 联动修改时）必须同步提交推送到本仓库，保持单一事实源。同时保留一份拷贝在 `chatu-builder-sdk/packages/app-sdk/skills/`（沙箱的最后一级回退源，随 npm 包发布）。
 4. **recipes 与模板对齐**：`chatu-quickstart/recipes/` 只允许使用 next-shadcn 模板已装依赖（shadcn@base-ui 组件、zod、lucide-react、sonner），保证复制后零安装即编译；模板依赖或组件 API 变更时（如 base-ui 的 `render` 属性替代 `asChild`），recipes 必须回归测试（拷入模板跑 `tsc --noEmit`）。
 5. SKILL 面向"生成应用的 agent"编写：告诉它平台能力怎么用、什么禁止装（第三方 auth/db/ai 库），而不是面向人类的教程。
+
+## 发布（推 `main` 即生效，不用重建 chatuse 镜像）
+
+推送到 `main` 会触发 `.github/workflows/publish.yml`：把所有含 `SKILL.md` 的目录打成 zip，POST 到 ChatU 服务端的 `builder/skills/publish`，服务端解到共享存储（CFS）；Builder 沙箱 Pod 把该目录只读挂载为 `/app/builder-skills`，runtime 在 **Pod 启动 / 快照恢复** 时优先从这里同步到 workspace 的 `.claude/skills/`。
+
+- 生效范围：发布后**新建、唤醒、重启**的沙箱；正在运行的 Pod 不变。
+- 回退顺序（runtime）：CFS 发布目录 → chatuse 镜像烘焙副本（构建时从本仓库 `main` 取）→ `node_modules/@chatu-ai/app-sdk/skills`。
+- 仓库 Secrets（在 GitHub 仓库设置里配置，**不要写进任何文件**）：`CHATU_SKILL_PUBLISH_URL`（服务端地址 + `builder/skills/publish`）、`CHATU_SKILL_PUBLISH_TOKEN`（与服务端配置一致的口令）。
+- 手动触发：Actions 页面 `Publish skills` → Run workflow。
+- 核对：`GET builder/skills/publish`（同口令）返回当前已发布的 git ref、时间与 skill 清单；沙箱侧 `/api/runtime/meta` 的 `skillsSource` 显示实际同步来源。
+

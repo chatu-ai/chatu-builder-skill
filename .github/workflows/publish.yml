@@ -1,0 +1,49 @@
+# 把本仓库的 SKILL 发布到 ChatU 平台（Dapi.Web `POST /builder/skills/publish` → CFS → Builder 沙箱 Pod 启动即用），
+# 不需要重建 chatuse 镜像。仓库 Secrets：
+#   CHATU_SKILL_PUBLISH_URL    Dapi.Web 对外基址 + builder/skills/publish（不要写进仓库文件）
+#   CHATU_SKILL_PUBLISH_TOKEN  与服务端 Builder__Skills__PublishToken 一致的口令
+name: Publish skills
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-skills
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pack skill directories
+        run: |
+          set -euo pipefail
+          # 只打包含 SKILL.md 的一级目录；README / .github 等不进包
+          dirs=$(find . -mindepth 2 -maxdepth 2 -name SKILL.md -not -path './.git/*' -printf '%h\n' | sed 's#^\./##' | sort)
+          if [ -z "$dirs" ]; then echo "no skill directories found"; exit 1; fi
+          echo "$dirs"
+          # shellcheck disable=SC2086
+          zip -r -q -X skills.zip $dirs
+          ls -l skills.zip
+
+      - name: Publish to ChatU
+        env:
+          PUBLISH_URL: ${{ secrets.CHATU_SKILL_PUBLISH_URL }}
+          PUBLISH_TOKEN: ${{ secrets.CHATU_SKILL_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PUBLISH_URL}" ] || [ -z "${PUBLISH_TOKEN}" ]; then
+            echo "::error::CHATU_SKILL_PUBLISH_URL / CHATU_SKILL_PUBLISH_TOKEN secrets are not set"
+            exit 1
+          fi
+          curl --fail-with-body -sS --retry 3 --retry-delay 5 \
+            -X POST "${PUBLISH_URL}" \
+            -H "Content-Type: application/zip" \
+            -H "X-Publish-Token: ${PUBLISH_TOKEN}" \
+            -H "X-Skill-Ref: ${GITHUB_SHA}" \
+            --data-binary @skills.zip
+          echo
