@@ -1,5 +1,5 @@
 # 把本仓库的 SKILL 发布到 ChatU 平台（Dapi.Web `POST /builder/skills/publish` → CFS → Builder 沙箱 Pod 启动即用），
-# 不需要重建 chatuse 镜像。仓库 Secrets：
+# 不需要重建 chatuse 镜像。发布前从 npm 最新 @chatu-ai/app-sdk 现场生成 SDK API 速查表一并打包。仓库 Secrets：
 #   CHATU_SKILL_PUBLISH_URL    Dapi.Web 对外基址 + builder/skills/publish（不要写进仓库文件）
 #   CHATU_SKILL_PUBLISH_TOKEN  与服务端 Builder__Skills__PublishToken 一致的口令
 name: Publish skills
@@ -18,6 +18,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      # SDK API 速查表现场生成：以 npm 上最新的 @chatu-ai/app-sdk 的 .d.ts 为准，
+      # 打进 zip 的 chatu-quickstart/references/sdk-api.md 永远与沙箱实际装的包一致（仓库里不存这个文件）
+      - name: Generate SDK API reference
+        run: |
+          set -euo pipefail
+          npm i --no-save --no-audit --no-fund @chatu-ai/app-sdk@latest typescript
+          # apidoc bin 自 app-sdk 0.12.1 起随包发布；更早的版本没有它——发布照常进行，只是这次不带速查表
+          if npx --no-install chatu-app-sdk-apidoc node_modules/@chatu-ai/app-sdk/dist chatu-quickstart/references/sdk-api.md; then
+            head -3 chatu-quickstart/references/sdk-api.md
+          else
+            echo "::warning::@chatu-ai/app-sdk@latest 没有 chatu-app-sdk-apidoc（需 >= 0.12.1），本次发布不带 sdk-api.md"
+          fi
 
       - name: Pack skill directories
         run: |

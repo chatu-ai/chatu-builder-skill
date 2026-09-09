@@ -13,7 +13,7 @@ cp -r .claude/skills/chatu-quickstart/recipes/form-collect src/app/signup   # �
 - `data.ts` —— 内存数据层（接 chatu-db 时只改这个文件）。
 - `page.tsx` —— 表单页，Server Action + zod 校验，失败回显错误。
 - `success/page.tsx` —— 提交成功页。
-- `admin/page.tsx` —— 提交记录列表（表格）。**默认无鉴权**，正式使用前读 `chatu-auth` 加登录保护。
+- `admin/page.tsx` —— 提交记录列表（表格），首轮**默认保留**（用户要看别人提交的东西）。**默认无鉴权**：总结里写明地址 `/admin` 和"目前任何人都能打开"，用户点头后读 `chatu-auth` 加 `requireUser` + 管理员角色。
 
 ## 改造点（搜 `TODO(改)`）
 

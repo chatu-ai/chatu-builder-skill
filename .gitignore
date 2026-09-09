@@ -1,0 +1,4 @@
+# 发布 CI 从 @chatu-ai/app-sdk 的 .d.ts 现场生成，不入库
+chatu-quickstart/references/sdk-api.md
+node_modules/
+package-lock.json
