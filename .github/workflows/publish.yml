@@ -27,12 +27,13 @@ jobs:
       - name: Generate SDK API reference
         run: |
           set -euo pipefail
-          npm i --no-save --no-audit --no-fund @chatu-ai/app-sdk@latest typescript
-          # apidoc bin 自 app-sdk 0.12.1 起随包发布；更早的版本没有它——发布照常进行，只是这次不带速查表
+          # typescript 钉 5.x：生成器用的是 5.x 的编译器 API（createPrinter 等）；latest 已是 7（Go 重写、ESM-only），形状不同
+          npm i --no-save --no-audit --no-fund @chatu-ai/app-sdk@latest typescript@5
+          # apidoc bin 自 app-sdk 0.12.1 起随包发布。生成失败不阻断发布（只是这次不带速查表），但要在日志里醒目提示
           if npx --no-install chatu-app-sdk-apidoc node_modules/@chatu-ai/app-sdk/dist chatu-quickstart/references/sdk-api.md; then
             head -3 chatu-quickstart/references/sdk-api.md
           else
-            echo "::warning::@chatu-ai/app-sdk@latest 没有 chatu-app-sdk-apidoc（需 >= 0.12.1），本次发布不带 sdk-api.md"
+            echo "::warning::SDK API 速查表生成失败（app-sdk 版本 < 0.12.1 或生成器报错，见上方日志），本次发布不带 sdk-api.md"
           fi
 
       - name: Pack skill directories
